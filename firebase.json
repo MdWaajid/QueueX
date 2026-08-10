@@ -1,0 +1,24 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "queuex-b20cf",
+          "appId": "1:225802918968:android:c95857f8eadeebb80bdacd",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "queuex-b20cf",
+          "configurations": {
+            "android": "1:225802918968:android:c95857f8eadeebb80bdacd"
+          }
+        }
+      }
+    }
+  }
+}

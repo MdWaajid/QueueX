@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "225802918968",
+    "project_id": "queuex-b20cf",
+    "storage_bucket": "queuex-b20cf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225802918968:android:c95857f8eadeebb80bdacd",
+        "android_client_info": {
+          "package_name": "com.queuex.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALQh44bUvJeAIx8c6M70KOjVxia-SWoY4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
