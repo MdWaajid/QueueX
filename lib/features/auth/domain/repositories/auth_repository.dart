@@ -20,6 +20,16 @@ abstract class AuthRepository {
     required String smsCode,
   });
 
+  Future<UserCredential> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  });
+
+  Future<UserCredential> signUpWithEmailAndPassword({
+    required String email,
+    required String password,
+  });
+
   Future<UserModel?> getUserProfile(String uid);
 
   Future<UserModel> createUserProfile({
@@ -28,6 +38,8 @@ abstract class AuthRepository {
     required UserRole role,
     String? name,
   });
+
+  Future<UserModel> resolveStallIdForOwner(UserModel user);
 
   Future<void> signOut();
 }

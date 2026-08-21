@@ -40,7 +40,7 @@ class StallCard extends StatelessWidget {
                       top: Radius.circular(12),
                     ),
                   ),
-                  child: stall.stallImage.isNotEmpty
+                  child: stall.stallImage.startsWith('http')
                       ? Image.network(
                           stall.stallImage,
                           fit: BoxFit.cover,

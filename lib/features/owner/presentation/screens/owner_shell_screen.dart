@@ -1,19 +1,40 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_typography.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/screens/user_profile_screen.dart';
+import 'owner_dashboard_screen.dart';
+import 'owner_menu_screen.dart';
+import 'owner_orders_screen.dart';
+import 'owner_slot_screen.dart';
 
-class OwnerShellScreen extends ConsumerWidget {
+class OwnerShellScreen extends ConsumerStatefulWidget {
   const OwnerShellScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OwnerShellScreen> createState() => _OwnerShellScreenState();
+}
+
+class _OwnerShellScreenState extends ConsumerState<OwnerShellScreen> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final stallId = authState is AuthenticatedState ? (authState.user.stallId ?? '') : '';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('QueueX Stall Owner'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner_rounded),
+            tooltip: 'Scan Pickup QR Token',
+            onPressed: () {
+              context.push('/owner/scan-qr');
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Logout',
@@ -23,14 +44,23 @@ class OwnerShellScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: const Center(
-        child: Text(
-          'Owner Dashboard Shell',
-          style: AppTypography.titleMedium,
-        ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          OwnerDashboardScreen(stallId: stallId),
+          OwnerOrdersScreen(stallId: stallId),
+          OwnerMenuScreen(stallId: stallId),
+          OwnerSlotScreen(stallId: stallId),
+          const UserProfileScreen(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
         type: BottomNavigationBarType.fixed,

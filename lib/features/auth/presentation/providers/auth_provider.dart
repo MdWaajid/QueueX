@@ -96,7 +96,14 @@ class AuthController extends Notifier<AuthState> {
         await _authRepository.signOut();
         state = const AccountInactiveState('Your account has been deactivated. Please contact support.');
       } else {
-        state = AuthenticatedState(userProfile);
+        if (userProfile.role == UserRole.stallOwner &&
+            (userProfile.stallId == null || userProfile.stallId!.isEmpty)) {
+          final resolvedUser =
+              await _authRepository.resolveStallIdForOwner(userProfile);
+          state = AuthenticatedState(resolvedUser);
+        } else {
+          state = AuthenticatedState(userProfile);
+        }
       }
     } catch (e) {
       state = AuthErrorState('Failed to load user profile: ${e.toString()}');
@@ -156,6 +163,58 @@ class AuthController extends Notifier<AuthState> {
       }
     } catch (e) {
       state = const AuthErrorState('Invalid OTP code or expired session.');
+    }
+  }
+
+  Future<void> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    state = const AuthLoadingState();
+    try {
+      final userCred = await _authRepository.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      if (userCred.user != null) {
+        await _resolveUserProfile(userCred.user!.uid, userCred.user!.email ?? email);
+      } else {
+        state = const AuthErrorState('Email sign-in failed. Please try again.');
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (msg.contains('operation-not-allowed')) {
+        state = const AuthErrorState(
+            'Email/Password provider is disabled in Firebase Console. Enable Email/Password under Firebase Console > Authentication > Sign-in method.');
+      } else {
+        state = AuthErrorState(msg.replaceAll(RegExp(r'\[.*?\]\s*'), ''));
+      }
+    }
+  }
+
+  Future<void> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    state = const AuthLoadingState();
+    try {
+      final userCred = await _authRepository.signUpWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      if (userCred.user != null) {
+        await _resolveUserProfile(userCred.user!.uid, userCred.user!.email ?? email);
+      } else {
+        state = const AuthErrorState('Account creation failed. Please try again.');
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (msg.contains('operation-not-allowed')) {
+        state = const AuthErrorState(
+            'Email/Password provider is disabled in Firebase Console. Enable Email/Password under Firebase Console > Authentication > Sign-in method.');
+      } else {
+        state = AuthErrorState(msg.replaceAll(RegExp(r'\[.*?\]\s*'), ''));
+      }
     }
   }
 

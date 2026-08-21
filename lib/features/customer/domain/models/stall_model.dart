@@ -58,6 +58,7 @@ class StallModel {
     this.updatedAt,
   });
 
+  String get name => stallName;
   bool get isOpen => status.toLowerCase() == 'active';
   bool get isClosed => !isOpen;
 
@@ -80,7 +81,7 @@ class StallModel {
     return StallModel(
       stallId: id,
       ownerId: map['ownerId'] as String? ?? '',
-      stallName: map['stallName'] as String? ?? '',
+      stallName: map['stallName'] as String? ?? map['name'] as String? ?? '',
       description: map['description'] as String? ?? '',
       stallImage: map['stallImage'] as String? ?? '',
       phoneNumber: map['phoneNumber'] as String? ?? '',
@@ -126,5 +127,46 @@ class StallModel {
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : null,
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
     };
+  }
+
+  StallModel copyWith({
+    String? stallId,
+    String? ownerId,
+    String? stallName,
+    String? name,
+    String? description,
+    String? stallImage,
+    String? phoneNumber,
+    String? locationName,
+    double? latitude,
+    double? longitude,
+    String? status,
+    String? openingTime,
+    String? closingTime,
+    String? timezone,
+    bool? isPeakModeEnabled,
+    DateTime? peakModeEndTime,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return StallModel(
+      stallId: stallId ?? this.stallId,
+      ownerId: ownerId ?? this.ownerId,
+      stallName: stallName ?? name ?? this.stallName,
+      description: description ?? this.description,
+      stallImage: stallImage ?? this.stallImage,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      locationName: locationName ?? this.locationName,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      status: status ?? this.status,
+      openingTime: openingTime ?? this.openingTime,
+      closingTime: closingTime ?? this.closingTime,
+      timezone: timezone ?? this.timezone,
+      isPeakModeEnabled: isPeakModeEnabled ?? this.isPeakModeEnabled,
+      peakModeEndTime: peakModeEndTime ?? this.peakModeEndTime,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }

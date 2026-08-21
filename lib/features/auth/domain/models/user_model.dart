@@ -6,6 +6,7 @@ class UserModel {
   final String phoneNumber;
   final String? name;
   final UserRole role;
+  final String? stallId;
   final String? profileImage;
   final bool isActive;
   final DateTime? createdAt;
@@ -17,6 +18,7 @@ class UserModel {
     required this.phoneNumber,
     this.name,
     required this.role,
+    this.stallId,
     this.profileImage,
     this.isActive = true,
     this.createdAt,
@@ -31,6 +33,7 @@ class UserModel {
       phoneNumber: data['phoneNumber'] as String? ?? '',
       name: data['name'] as String?,
       role: UserRoleX.fromString(data['role'] as String?) ?? UserRole.customer,
+      stallId: data['stallId'] as String?,
       profileImage: data['profileImage'] as String?,
       isActive: data['isActive'] as bool? ?? true,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
@@ -45,6 +48,7 @@ class UserModel {
       'phoneNumber': phoneNumber,
       'name': name,
       'role': role.nameString == 'Stall Owner' ? 'stallOwner' : 'customer',
+      'stallId': stallId,
       'profileImage': profileImage,
       'isActive': isActive,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
@@ -58,6 +62,7 @@ class UserModel {
     String? phoneNumber,
     String? name,
     UserRole? role,
+    String? stallId,
     String? profileImage,
     bool? isActive,
     DateTime? createdAt,
@@ -69,6 +74,7 @@ class UserModel {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       name: name ?? this.name,
       role: role ?? this.role,
+      stallId: stallId ?? this.stallId,
       profileImage: profileImage ?? this.profileImage,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,

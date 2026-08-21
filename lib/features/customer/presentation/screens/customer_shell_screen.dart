@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_typography.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/screens/user_profile_screen.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../notifications/presentation/screens/notifications_screen.dart';
+import '../../../orders/presentation/screens/customer_orders_screen.dart';
 import 'customer_home_screen.dart';
 
 class CustomerShellScreen extends ConsumerStatefulWidget {
@@ -18,6 +21,10 @@ class _CustomerShellScreenState extends ConsumerState<CustomerShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final userId = authState is AuthenticatedState ? authState.user.userId : '';
+    final unreadCount = ref.watch(unreadNotificationsCountProvider(userId));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_getAppBarTitle(_currentIndex)),
@@ -33,11 +40,11 @@ class _CustomerShellScreenState extends ConsumerState<CustomerShellScreen> {
       ),
       body: IndexedStack(
         index: _currentIndex,
-        children: [
-          const CustomerHomeScreen(),
-          _buildPlaceholderTab('My Orders', Icons.receipt_long_outlined),
-          _buildPlaceholderTab('Notifications', Icons.notifications_outlined),
-          _buildPlaceholderTab('Profile', Icons.person_outline),
+        children: const [
+          CustomerHomeScreen(),
+          CustomerOrdersScreen(),
+          NotificationsScreen(),
+          UserProfileScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -50,23 +57,31 @@ class _CustomerShellScreenState extends ConsumerState<CustomerShellScreen> {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
         type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home_rounded),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long_outlined),
             activeIcon: Icon(Icons.receipt_long_rounded),
             label: 'Orders',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_outlined),
-            activeIcon: Icon(Icons.notifications_rounded),
+            icon: Badge(
+              isLabelVisible: unreadCount > 0,
+              label: Text('$unreadCount'),
+              child: const Icon(Icons.notifications_outlined),
+            ),
+            activeIcon: Badge(
+              isLabelVisible: unreadCount > 0,
+              label: Text('$unreadCount'),
+              child: const Icon(Icons.notifications_rounded),
+            ),
             label: 'Notifications',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person_rounded),
             label: 'Profile',
@@ -89,27 +104,5 @@ class _CustomerShellScreenState extends ConsumerState<CustomerShellScreen> {
       default:
         return 'QueueX';
     }
-  }
-
-  Widget _buildPlaceholderTab(String title, IconData icon) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 48,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: AppTypography.titleMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

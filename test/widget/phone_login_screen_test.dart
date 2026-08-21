@@ -33,6 +33,22 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<UserCredential> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<UserCredential> signUpWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<UserModel?> getUserProfile(String uid) async => null;
 
   @override
@@ -44,6 +60,9 @@ class FakeAuthRepository implements AuthRepository {
   }) async {
     throw UnimplementedError();
   }
+
+  @override
+  Future<UserModel> resolveStallIdForOwner(UserModel user) async => user;
 
   @override
   Future<void> signOut() async {}

@@ -63,9 +63,9 @@ final filteredStallsProvider = Provider<AsyncValue<List<StallModel>>>((ref) {
 });
 
 final stallDetailsProvider =
-    FutureProvider.family<StallModel?, String>((ref, stallId) async {
+    StreamProvider.family<StallModel?, String>((ref, stallId) {
   final repository = ref.watch(customerDiscoveryRepositoryProvider);
-  return repository.getStallById(stallId);
+  return repository.getStallStream(stallId);
 });
 
 final stallCategoriesProvider =

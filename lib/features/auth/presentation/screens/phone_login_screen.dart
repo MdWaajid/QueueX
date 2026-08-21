@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
@@ -105,6 +106,31 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                   label: 'Get OTP',
                   isLoading: isLoading,
                   onPressed: _submitPhone,
+                ),
+                AppSpacing.gapLg,
+                Row(
+                  children: [
+                    const Expanded(child: Divider(color: AppColors.divider)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'OR',
+                        style: AppTypography.bodySecondary.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: Divider(color: AppColors.divider)),
+                  ],
+                ),
+                AppSpacing.gapLg,
+                AppButton(
+                  label: 'Sign in with Email',
+                  variant: AppButtonVariant.outline,
+                  icon: Icons.email_outlined,
+                  onPressed: () {
+                    context.push('/email-login');
+                  },
                 ),
                 AppSpacing.gapLg,
               ],
