@@ -49,6 +49,7 @@ class FirebaseService {
 
     if (AppConfig.instance.enableAppCheck && !kIsWeb) {
       await appCheck.activate(
+        // ignore: deprecated_member_use
         androidProvider: kDebugMode
             ? AndroidProvider.debug
             : AndroidProvider.playIntegrity,

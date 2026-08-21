@@ -155,7 +155,7 @@ class AuthController extends Notifier<AuthState> {
         state = const AuthErrorState('Sign in failed. Please try again.');
       }
     } catch (e) {
-      state = AuthErrorState('Invalid OTP code or expired session.');
+      state = const AuthErrorState('Invalid OTP code or expired session.');
     }
   }
 

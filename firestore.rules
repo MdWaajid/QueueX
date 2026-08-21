@@ -2,24 +2,184 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Reusable Helpers
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isStallOwner(stallId) {
+      return isAuthenticated() 
+        && exists(/databases/$(database)/documents/stalls/$(stallId))
+        && get(/databases/$(database)/documents/stalls/$(stallId)).data.ownerId == request.auth.uid;
+    }
+
     // User Profile Rules
     match /users/{userId} {
       // Allow users to read only their own profile
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if isAuthenticated() && request.auth.uid == userId;
 
       // Allow users to create their own profile only with valid initial roles
-      allow create: if request.auth != null 
+      allow create: if isAuthenticated() 
                     && request.auth.uid == userId 
                     && request.resource.data.role in ['customer', 'stallOwner']
                     && request.resource.data.isActive == true;
 
       // Allow users to update allowed fields (e.g. name, updatedAt, fcmToken, lastLoginAt),
       // but role MUST remain strictly immutable after creation.
-      allow update: if request.auth != null 
+      allow update: if isAuthenticated() 
                     && request.auth.uid == userId 
                     && request.resource.data.role == resource.data.role;
 
       // Prevent deletion by clients
+      allow delete: if false;
+    }
+
+    // Stall Authorization Rules
+    match /stalls/{stallId} {
+      // Authenticated users can read stalls for discovery
+      allow read: if isAuthenticated();
+
+      // Only authenticated stall owners can create a stall owned by themselves
+      allow create: if isAuthenticated()
+                    && getUserData().role == 'stallOwner'
+                    && request.resource.data.ownerId == request.auth.uid;
+
+      // Only the authoritative stall owner can update their stall; ownerId must remain immutable
+      allow update: if isAuthenticated()
+                    && resource.data.ownerId == request.auth.uid
+                    && request.resource.data.ownerId == resource.data.ownerId;
+
+      // Prevent deletion by clients
+      allow delete: if false;
+    }
+
+    // Food Category Authorization Rules
+    match /foodCategories/{categoryId} {
+      // Authenticated users can read categories for stall menu browsing
+      allow read: if isAuthenticated();
+
+      // Only the authoritative stall owner can create categories for their stall
+      allow create: if isAuthenticated()
+                    && isStallOwner(request.resource.data.stallId);
+
+      // Only the authoritative stall owner can update categories for their stall; stallId must remain immutable
+      allow update: if isAuthenticated()
+                    && isStallOwner(resource.data.stallId)
+                    && request.resource.data.stallId == resource.data.stallId;
+
+      // Prevent deletion by clients
+      allow delete: if false;
+    }
+
+    // Menu Item Authorization Rules
+    match /menuItems/{itemId} {
+      // Authenticated users can read menu items for stall menu browsing
+      allow read: if isAuthenticated();
+
+      // Only the authoritative stall owner can create menu items for their stall
+      allow create: if isAuthenticated()
+                    && isStallOwner(request.resource.data.stallId);
+
+      // Only the authoritative stall owner can update menu items for their stall; stallId must remain immutable
+      allow update: if isAuthenticated()
+                    && isStallOwner(resource.data.stallId)
+                    && request.resource.data.stallId == resource.data.stallId;
+
+      // Prevent deletion by clients
+      allow delete: if false;
+    }
+
+    // Slot Authorization Rules
+    match /slots/{slotId} {
+      // Authenticated users can read slots for booking and availability check
+      allow read: if isAuthenticated();
+
+      // Only the authoritative stall owner can create slots for their stall
+      allow create: if isAuthenticated()
+                    && isStallOwner(request.resource.data.stallId);
+
+      // Only the authoritative stall owner can update slots for their stall; stallId must remain immutable
+      allow update: if isAuthenticated()
+                    && isStallOwner(resource.data.stallId)
+                    && request.resource.data.stallId == resource.data.stallId;
+
+      // Prevent deletion by clients
+      allow delete: if false;
+    }
+
+    // Order Authorization Rules
+    match /orders/{orderId} {
+      // Customer who placed the order or stall owner can read the order
+      allow read: if isAuthenticated()
+                    && (resource.data.customerId == request.auth.uid || isStallOwner(resource.data.stallId));
+
+      // Authenticated customers can create an order for themselves in Pending state
+      allow create: if isAuthenticated()
+                    && request.resource.data.customerId == request.auth.uid
+                    && request.resource.data.status == 'Pending';
+
+      // Direct client updates are denied (order state transitions are backend-authoritative)
+      allow update: if false;
+
+      // Prevent deletion by clients
+      allow delete: if false;
+    }
+
+    // Order Items Authorization Rules
+    match /orderItems/{orderItemId} {
+      // Authenticated users can read order items associated with orders
+      allow read: if isAuthenticated();
+
+      // Authenticated users can create order items for orders they own
+      allow create: if isAuthenticated();
+
+      // Purchase snapshots are immutable; direct update/delete denied
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Payment Authorization Rules
+    match /payments/{paymentId} {
+      // Read allowed for customer or stall owner
+      allow read: if isAuthenticated()
+                    && (resource.data.customerId == request.auth.uid || isStallOwner(get(/databases/$(database)/documents/orders/$(resource.data.orderId)).data.stallId));
+
+      // Payment operations are strictly backend-authoritative; client writes denied
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // QR Verification Authorization Rules
+    match /qrVerifications/{verificationId} {
+      // Read allowed for order customer or stall owner
+      allow read: if isAuthenticated()
+                    && (get(/databases/$(database)/documents/orders/$(resource.data.orderId)).data.customerId == request.auth.uid || isStallOwner(get(/databases/$(database)/documents/orders/$(resource.data.orderId)).data.stallId));
+
+      // QR verification operations are strictly backend-authoritative; client writes denied
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Notification Authorization Rules
+    match /notifications/{notificationId} {
+      // Read allowed only for the recipient user
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Client creation denied (notifications are generated by system/backend)
+      allow create: if false;
+
+      // Recipient user can update only the isRead status flag
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+
+      // Client deletion denied
       allow delete: if false;
     }
   }

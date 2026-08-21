@@ -15,7 +15,7 @@ void main() {
     });
 
     test('UserModel creation and copyWith properties', () {
-      final user = UserModel(
+      const user = UserModel(
         userId: 'user_123',
         phoneNumber: '+919876543210',
         name: 'Test Customer',

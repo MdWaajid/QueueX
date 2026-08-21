@@ -7,6 +7,7 @@ import '../../features/auth/presentation/screens/initial_role_setup_screen.dart'
 import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 import '../../features/auth/presentation/screens/phone_login_screen.dart';
 import '../../features/customer/presentation/screens/customer_shell_screen.dart';
+import '../../features/customer/presentation/screens/stall_details_screen.dart';
 import '../../features/owner/presentation/screens/owner_shell_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 
@@ -16,6 +17,7 @@ abstract class AppRoutes {
   static const String verifyOtp = '/verify-otp';
   static const String roleSetup = '/role-setup';
   static const String customerHome = '/customer';
+  static const String stallDetails = '/customer/stall/:stallId';
   static const String ownerDashboard = '/owner';
 }
 
@@ -56,6 +58,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CustomerShellScreen(),
       ),
       GoRoute(
+        path: AppRoutes.stallDetails,
+        builder: (context, state) {
+          final stallId = state.pathParameters['stallId'] ?? '';
+          return StallDetailsScreen(stallId: stallId);
+        },
+      ),
+      GoRoute(
         path: AppRoutes.ownerDashboard,
         builder: (context, state) => const OwnerShellScreen(),
       ),
@@ -78,9 +87,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       } else if (authState is AuthenticatedState) {
         final role = authState.user.role;
-        if (role == UserRole.customer && location != AppRoutes.customerHome) {
+        if (role == UserRole.customer && !location.startsWith(AppRoutes.customerHome)) {
           return AppRoutes.customerHome;
-        } else if (role == UserRole.stallOwner && location != AppRoutes.ownerDashboard) {
+        } else if (role == UserRole.stallOwner && !location.startsWith(AppRoutes.ownerDashboard)) {
           return AppRoutes.ownerDashboard;
         }
       }

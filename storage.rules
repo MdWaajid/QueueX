@@ -1,0 +1,32 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isImageAndUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024
+          && request.resource.contentType.matches('image/.*');
+    }
+
+    // User Profile Images
+    match /users/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isImageAndUnder5MB();
+      allow delete: if false;
+    }
+
+    // Stall and Menu Item Images
+    match /stalls/{stallId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isImageAndUnder5MB();
+      allow delete: if false;
+    }
+  }
+}
